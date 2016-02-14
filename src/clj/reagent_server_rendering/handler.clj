@@ -40,17 +40,20 @@
      [:meta {:charset "utf-8"}]
      [:meta {:name "viewport"
              :content "width=device-width, initial-scale=1"}]
-     (include-css "css/site.css")]
+     (include-css "css/site.css" "http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.min.css")
+     (include-js "https://code.jquery.com/jquery-1.11.2.min.js" "http://code.jquery.com/ui/1.11.2/jquery-ui.min.js")
+     ]
     [:body
      [:div#app
       (render-page page-id)]
      (include-js "js/compiled/app.js")
      [:script {:type "text/javascript"}
-      (str "reagent_server_rendering.core.main('" page-id "'); console.log('hi from clojure')")]]]))
+      (str "reagent_server_rendering.core.main('" page-id "');")]]]))
 
 (defroutes app-routes
   (GET "/" [] (page "home"))
   (GET "/about" [] (page "about"))
+  (GET "/autocomplete" [] (page "autocomplete"))
   (resources "/")
   (not-found "Not Found"))
 
