@@ -1,10 +1,25 @@
 (ns reagent-server-rendering.core
-    (:require [reagent.core :as reagent]))
+    (:require-macros [secretary.core :refer [defroute]])
+    (:import goog.history.Html5History)
+    (:require [secretary.core :as secretary]
+              [reagent-server-rendering.pages :as pages]
+              [reagent.core :as reagent]
+              [goog.history.EventType :as EventType]
+              [goog.events :as events]))
+
+(enable-console-print!)
+
+(defonce app-state (reagent/atom {}))
 
 (defn item [link title active]
-  (if (= link active)
-    [:span title]
-    [:a {:href link} title]))
+  (let [nav! (@app-state :navigate)]
+    (if (= link active)
+      [:span title]
+      [:a {:href link
+           :onClick (fn [e]
+                      (.preventDefault e)
+                      (nav! link))}
+       title])))
 
 (defn menu [active]
   [:ul
@@ -12,71 +27,85 @@
       [:li [item "/about" "about" active]]
       [:li [item "/autocomplete" "autocomplete" active]] ])
 
-(defn home-page []
-  [:div [:h2 "Welcome to reagent-server-rendering"]
-   [menu "/"]])
+;; Client side routing with html5 pushstate
+;; is a mix of this: http://www.lispcast.com/mastering-client-side-routing-with-secretary-and-goog-history
+;; and this: https://github.com/reagent-project/reagent-cookbook/tree/master/recipes/add-routing
 
-(def auto-tags
-  ["ActionScript"
-   "AppleScript"
-   "Asp"
-   "BASIC"
-   "C"
-   "C++"
-   "Clojure"
-   "COBOL"
-   "ColdFusion"
-   "Erlang"
-   "Fortran"
-   "Groovy"
-   "Haskell"
-   "Java"
-   "JavaScript"
-   "Lisp"
-   "Perl"
-   "PHP"
-   "Python"
-   "Ruby"
-   "Scala"
-   "Scheme"])
+(defn get-token []
+  (str js/window.location.pathname js/window.location.search))
 
-(defn auto-did-mount []
-  (js/$ (fn []
-          (.autocomplete (js/$ "#tags")
-                         (clj->js {:source auto-tags})))))
+(defn handle-url-change [e]
+  (js/console.log (str "Navigating: " (get-token)))
+  ;; we are checking if this event is due to user action,
+  ;; such as click a link, a back button, etc.
+  ;; as opposed to programmatically setting the URL with the API
+  (when-not (.-isNavigation e)
+    ;; in this case, we're setting it
+    (js/console.log "Token set programmatically")
+    ;; let's scroll to the top to simulate a navigation
+    (js/window.scrollTo 0 0))
+  ;; dispatch on the token
+  (secretary/dispatch! (get-token)))
 
-(defn auto-render []
-  [:div [:h2 "this is the auto complete page"]
-   [:div.ui-widget
-    [:label {:for "tags"} "Programming Languages"]
-    [:input#tags]]
-   [menu "/autocomplete"]])
+(defn hook-browser-navigation! []
+  (doto (Html5History.)
+    (.setPathPrefix (str js/window.location.protocol
+                         "//"
+                         js/window.location.host))
+    (.setUseFragment false)
+    (.setEnabled true)
+    (events/listen
+     EventType/NAVIGATE
+     handle-url-change)))
 
-;; This is who to create a normal react class with lifecycle methods
-(defn auto-page []
-  (reagent/create-class {:reagent-render auto-render
-                         :component-did-mount auto-did-mount}))
+;; (defn nav! [token]
+;; (.setToken history token))
 
-(defn simple-component []
-  [:div "im a simple component"])
+(defn app-routes []
+  (defroute "/" []
+    (swap! app-state assoc :page "home"))
 
-(defn about-page []
-  [:div [:h2 "About reagent-server-rendering"]
-   [simple-component]
-   [:div
-      "Some different "
-      [:strong "bold"]
-      " text. "
-      [:span {:style {:color "red"}} "Red text!"]]
-   [menu "/about"]])
+  (defroute "/about" []
+    (swap! app-state assoc :page "about"))
+
+  (defroute "/autocomplete" []
+    (swap! app-state assoc :page "autocomplete"))
+
+  (let [history (hook-browser-navigation!)
+        nav! (fn [token]
+               (println "calling html5 navigation" token)
+               (.setToken history token))]
+    (swap! app-state assoc :navigate nav!)))
 
 (def pages
-  {"home"  home-page
-   "about" about-page
-   "autocomplete" auto-page})
+  {"home"  pages/home-page
+   "about" pages/about-page
+   "autocomplete" pages/auto-page})
+
+(defmulti current-page #(@app-state :page))
+(defmethod current-page "home" []
+  (println "rendering home")
+  [:div
+   [pages/home-page]
+   [menu "/"]])
+(defmethod current-page "about" []
+  (println "rendering about")
+  [:div
+   [pages/about-page]
+   [menu "/about"]])
+(defmethod current-page "autocomplete" []
+  (println "rendering autocomplete")
+  [:div
+   [pages/auto-page]
+   [menu "/autocomplete"]])
+(defmethod current-page :default []
+  (println "rendering default")
+  [:div "default page" [menu "/404"]])
 
 (defn ^:export render-page [page-id]
   (reagent/render-to-string [(get pages page-id)]))
 
 (defn ^:export main [page-id]
-  (reagent/render [(get pages page-id)] (.getElementById js/document "app")))
+  (swap! app-state assoc :page page-id)
+  (app-routes)
+  (reagent/render [current-page] (.getElementById js/document "app")))

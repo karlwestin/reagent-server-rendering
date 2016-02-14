@@ -10,7 +10,9 @@
                  ;;server-side HTML templating
                  [hiccup "1.0.5"]
                  ;;thread pool management
-                 [aleph "0.4.0"]]
+                 [aleph "0.4.0"]
+                 ;; client side routing
+                 [secretary "1.2.3"]]
 
   :source-paths ["src/clj"]
 
