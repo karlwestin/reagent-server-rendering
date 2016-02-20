@@ -99,3 +99,6 @@
    [:div "the count below is initially seeded from the server side"]
    [:div "Current count: " (@app-state "counter")]
    [:button {:on-click (fn [e] (swap! app-state update-in ["counter"] inc))} "increment"]])
+
+(defn not-found []
+  [:div "Couldn't find this page"])

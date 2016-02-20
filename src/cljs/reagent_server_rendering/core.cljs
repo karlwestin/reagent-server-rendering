@@ -11,6 +11,16 @@
 
 (defonce app-state (reagent/atom {}))
 
+;; To create a page, add it here
+;; (adds page both server and client side)
+(def pages
+  {"home"  pages/home-page
+   "about" pages/about-page
+   "compare-argv" pages/argv-page
+   "server-data" pages/server-data
+   "autocomplete" pages/auto-page
+   "404" pages/not-found })
+
 (defn item [link title active]
   (let [nav! (@app-state :navigate)]
     (if (= link active)
@@ -60,11 +70,19 @@
      EventType/NAVIGATE
      handle-url-change)))
 
+
+;; Sanity check if wanted page is defined in pages
+(defn ^:export get-page [wanted-id]
+  (if (get pages wanted-id)
+    wanted-id
+    "404"))
+
 (defn app-routes []
   (defroute "/" []
     (swap! app-state assoc :page "home"))
 
   (defroute "/:page" {:as params}
+    ;; check if the page is defined above
     (swap! app-state assoc :page (:page params)))
 
   (let [history (hook-browser-navigation!)
@@ -73,28 +91,21 @@
                (.setToken history token))]
     (swap! app-state assoc :navigate nav!)))
 
-(def pages
-  {"home"  pages/home-page
-   "about" pages/about-page
-   "compare-argv" pages/argv-page
-   "server-data" pages/server-data
-   "autocomplete" pages/auto-page})
-
 (defn page [component route]
  [:div
    [component]
    [menu route]])
 
 (defn render-client-side []
-  (let [page-id (@app-state :page)]
-    (page (get pages page-id) page-id)))
+  (let [page-id (@app-state :page)
+        checked (get-page page-id)]
+    (page (get pages checked) page-id)))
 
 ;; Server-Side rendering starting point
 (defn ^:export render-page [page-id user-data]
   (let [user-data (js->clj (.parse js/JSON user-data))]
     (reset! pages/app-state user-data)
-    (reagent/render-to-string [page (get pages page-id) (str "/" page-id)])
-    ))
+    (reagent/render-to-string [page (get pages (get-page page-id)) (str "/" page-id)])))
 
 ;; Client side rendering starting point
 (defn ^:export main [page-id user-data]

@@ -24,7 +24,20 @@ $ lein ring server-headless
 * **src/cljs/reagent_server_rendering/core.cljs** this is where the rendering starts. Client side routing, etc. has 2 important exports: `main`, for client side app init, and `render-page` that is used by the server side renderer
 * **src/cljs/reagent_server_rendering/pages.cljs** reagent components used for each page
 
+### Defining routes
+
+Routes are only defined in CLJS, in reagent-server-rendering.core there's a `pages` map that looks like this:
+```clojure
+(def pages
+  {"home"  pages/home-page
+   "about" pages/about-page
+   "compare-argv" pages/argv-page
+   "server-data" pages/server-data
+   "autocomplete" pages/auto-page
+   "404" pages/not-found })
+```
+the string key becomes the URL, the value is a reagent component
+
 Ideas
 ----
-* Client side routing (done, though the routes have to be duplicated)
 * How to add Figwheel + HMR?
