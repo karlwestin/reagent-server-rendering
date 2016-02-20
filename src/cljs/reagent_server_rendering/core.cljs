@@ -26,7 +26,7 @@
       [:li [item "/" "home" active]]
       [:li [item "/about" "about" active]]
       [:li [item "/autocomplete" "autocomplete" active]]
-      [:li [item "/local-storage" "Local Storage" active]]
+      [:li [item "/server-data" "Server Data" active]]
       [:li [item "/compare-argv" "Compare argv tutorial" active]]  ])
 
 ;; Client side routing with html5 pushstate
@@ -60,24 +60,12 @@
      EventType/NAVIGATE
      handle-url-change)))
 
-;; (defn nav! [token]
-;; (.setToken history token))
-
 (defn app-routes []
   (defroute "/" []
     (swap! app-state assoc :page "home"))
 
-  (defroute "/about" []
-    (swap! app-state assoc :page "about"))
-
-  (defroute "/autocomplete" []
-    (swap! app-state assoc :page "autocomplete"))
-
-  (defroute "/compare-argv" []
-    (swap! app-state assoc :page "compare-argv"))
-
-  (defroute "/local-storage" []
-    (swap! app-state assoc :page "local-storage"))
+  (defroute "/:page" {:as params}
+    (swap! app-state assoc :page (:page params)))
 
   (let [history (hook-browser-navigation!)
         nav! (fn [token]
@@ -89,7 +77,7 @@
   {"home"  pages/home-page
    "about" pages/about-page
    "compare-argv" pages/argv-page
-   "local-storage" pages/storage-page
+   "server-data" pages/server-data
    "autocomplete" pages/auto-page})
 
 (defn page [component route]
@@ -102,11 +90,19 @@
     (page (get pages page-id) page-id)))
 
 ;; Server-Side rendering starting point
-(defn ^:export render-page [page-id]
-  (reagent/render-to-string [page (get pages page-id) (str "/" page-id)]))
+(defn ^:export render-page [page-id user-data]
+  (let [user-data (js->clj (.parse js/JSON user-data))]
+    (reset! pages/app-state user-data)
+    (reagent/render-to-string [page (get pages page-id) (str "/" page-id)])
+    ))
 
 ;; Client side rendering starting point
-(defn ^:export main [page-id]
-  (swap! app-state assoc :page page-id)
-  (app-routes)
-  (reagent/render [render-client-side] (.getElementById js/document "app")))
+(defn ^:export main [page-id user-data]
+  (println user-data)
+  (let [user-data (js->clj user-data)]
+  ;; routing
+    (swap! app-state assoc :page page-id)
+    ;; user data
+    (reset! pages/app-state user-data)
+    (app-routes)
+    (reagent/render [render-client-side] (.getElementById js/document "app"))))

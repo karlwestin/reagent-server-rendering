@@ -13,7 +13,7 @@ $ lein ring server-headless
 
 ### Pages
 
-* **[/local-storage](http://localhost:3000/local-storage)** use localstorage to store app state (and work with server side rendering)
+* **[/server-data](http://localhost:3000/server-data)** use data that is seeded from the server, render it in clojurescript
 * **[/autocomplete](http://localhost:3000/autocomplete)** an example of calling out to jQuery
 * **[/compare-argv](http://localhost:3000/compare-argv)** not so interesting
 * **[/about](http://localhost:3000/about)** just another page

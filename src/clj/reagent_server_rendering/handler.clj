@@ -1,5 +1,6 @@
 (ns reagent-server-rendering.handler
   (:require [aleph.flow :as flow]
+            [clojure.data.json :as json]
             [clojure.java.io :as io]
             [hiccup.core :refer [html]]
             [hiccup.page :refer [include-js include-css]]
@@ -25,16 +26,17 @@
     {:generate   (fn [_] (create-js-engine))
      :controller (Pools/utilizationController 0.9 10000 10000)}))
 
-(defn- render-page [page-id]
+(defn- render-page [page-id user-data]
   (let [js-engine @(flow/acquire js-engine-pool js-engine-key)]
     (try (.invokeMethod
            ^Invocable js-engine
            (.eval js-engine "reagent_server_rendering.core")
-           "render_page" (object-array [page-id]))
+           "render_page" (object-array [page-id user-data]))
          (finally (flow/release js-engine-pool js-engine-key js-engine)))))
 
 (defn page [page-id]
-  (html
+  (let [user-data (json/write-str {"counter" 10})]
+   (html
    [:html
     [:head
      [:meta {:charset "utf-8"}]
@@ -45,17 +47,19 @@
      ]
     [:body
      [:div#app
-      (render-page page-id)]
+      (render-page page-id user-data)]
      (include-js "js/compiled/app.js")
      [:script {:type "text/javascript"}
-      (str "reagent_server_rendering.core.main('" page-id "');")]]]))
+      (str "reagent_server_rendering.core.main('" page-id "', " user-data ");")]]])
+    )
+  )
 
 (defroutes app-routes
   (GET "/" [] (page "home"))
   (GET "/about" [] (page "about"))
   (GET "/autocomplete" [] (page "autocomplete"))
   (GET "/compare-argv" [] (page "compare-argv"))
-  (GET "/local-storage" [] (page "local-storage"))
+  (GET "/server-data" [] (page "server-data"))
   (resources "/")
   (not-found "Not Found"))
 

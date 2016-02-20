@@ -90,15 +90,12 @@
            [:button {:on-click #(swap! v2 inc)} "inc val2"]
            [update-highlighter @v1 @v2] ])))
 
-(defonce app-state
-  (try
-    (local-storage (reagent/atom {:counter 0}) :app-state)
-    (catch js/Object e
-      (reagent/atom {:counter 0}))))
+ (defonce app-state
+   (reagent/atom {"counter" 0}))
 
-(defn storage-page []
+(defn server-data []
   [:div
-   [:h1 "this page is driven with local storage"]
-   [:div "Current count: " (@app-state :counter)]
-   [:button {:on-click (fn [e] (swap! app-state update-in [:counter] inc))} "increment"]
-   ])
+   [:h1 "this page is rendering data from the server"]
+   [:div "the count below is initially seeded from the server side"]
+   [:div "Current count: " (@app-state "counter")]
+   [:button {:on-click (fn [e] (swap! app-state update-in ["counter"] inc))} "increment"]])

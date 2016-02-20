@@ -14,7 +14,8 @@
                  ;; client side routing
                  [secretary "1.2.3"]
                  ;; local storage
-                 [alandipert/storage-atom "1.2.4"]]
+                 [alandipert/storage-atom "1.2.4"]
+                 [org.clojure/data.json "0.2.6"]]
 
   :source-paths ["src/clj"]
 
