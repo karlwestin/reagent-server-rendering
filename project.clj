@@ -12,7 +12,9 @@
                  ;;thread pool management
                  [aleph "0.4.0"]
                  ;; client side routing
-                 [secretary "1.2.3"]]
+                 [secretary "1.2.3"]
+                 ;; local storage
+                 [alandipert/storage-atom "1.2.4"]]
 
   :source-paths ["src/clj"]
 

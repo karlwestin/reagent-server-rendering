@@ -54,6 +54,8 @@
   (GET "/" [] (page "home"))
   (GET "/about" [] (page "about"))
   (GET "/autocomplete" [] (page "autocomplete"))
+  (GET "/compare-argv" [] (page "compare-argv"))
+  (GET "/local-storage" [] (page "local-storage"))
   (resources "/")
   (not-found "Not Found"))
 

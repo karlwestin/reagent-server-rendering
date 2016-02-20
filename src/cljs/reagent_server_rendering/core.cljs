@@ -25,7 +25,9 @@
   [:ul
       [:li [item "/" "home" active]]
       [:li [item "/about" "about" active]]
-      [:li [item "/autocomplete" "autocomplete" active]] ])
+      [:li [item "/autocomplete" "autocomplete" active]]
+      [:li [item "/local-storage" "Local Storage" active]]
+      [:li [item "/compare-argv" "Compare argv tutorial" active]]  ])
 
 ;; Client side routing with html5 pushstate
 ;; is a mix of this: http://www.lispcast.com/mastering-client-side-routing-with-secretary-and-goog-history
@@ -71,6 +73,12 @@
   (defroute "/autocomplete" []
     (swap! app-state assoc :page "autocomplete"))
 
+  (defroute "/compare-argv" []
+    (swap! app-state assoc :page "compare-argv"))
+
+  (defroute "/local-storage" []
+    (swap! app-state assoc :page "local-storage"))
+
   (let [history (hook-browser-navigation!)
         nav! (fn [token]
                (println "calling html5 navigation" token)
@@ -80,6 +88,8 @@
 (def pages
   {"home"  pages/home-page
    "about" pages/about-page
+   "compare-argv" pages/argv-page
+   "local-storage" pages/storage-page
    "autocomplete" pages/auto-page})
 
 (defmulti current-page #(@app-state :page))
@@ -98,6 +108,16 @@
   [:div
    [pages/auto-page]
    [menu "/autocomplete"]])
+(defmethod current-page "compare-argv" []
+  (println "rendering argv")
+  [:div
+   [pages/argv-page]
+   [menu "/compare-argv"]])
+(defmethod current-page "local-storage" []
+  (println "rendering local storage")
+  [:div
+   [pages/storage-page]
+   [menu "/local-storage"]])
 (defmethod current-page :default []
   (println "rendering default")
   [:div "default page" [menu "/404"]])
