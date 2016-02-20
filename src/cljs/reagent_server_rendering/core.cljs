@@ -122,9 +122,11 @@
   (println "rendering default")
   [:div "default page" [menu "/404"]])
 
+;; Server-Side rendering starting point
 (defn ^:export render-page [page-id]
   (reagent/render-to-string [(get pages page-id)]))
 
+;; Client side rendering starting point
 (defn ^:export main [page-id]
   (swap! app-state assoc :page page-id)
   (app-routes)
