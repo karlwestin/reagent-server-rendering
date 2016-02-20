@@ -92,42 +92,21 @@
    "local-storage" pages/storage-page
    "autocomplete" pages/auto-page})
 
-(defmulti current-page #(@app-state :page))
-(defmethod current-page "home" []
-  (println "rendering home")
-  [:div
-   [pages/home-page]
-   [menu "/"]])
-(defmethod current-page "about" []
-  (println "rendering about")
-  [:div
-   [pages/about-page]
-   [menu "/about"]])
-(defmethod current-page "autocomplete" []
-  (println "rendering autocomplete")
-  [:div
-   [pages/auto-page]
-   [menu "/autocomplete"]])
-(defmethod current-page "compare-argv" []
-  (println "rendering argv")
-  [:div
-   [pages/argv-page]
-   [menu "/compare-argv"]])
-(defmethod current-page "local-storage" []
-  (println "rendering local storage")
-  [:div
-   [pages/storage-page]
-   [menu "/local-storage"]])
-(defmethod current-page :default []
-  (println "rendering default")
-  [:div "default page" [menu "/404"]])
+(defn page [component route]
+ [:div
+   [component]
+   [menu route]])
+
+(defn render-client-side []
+  (let [page-id (@app-state :page)]
+    (page (get pages page-id) page-id)))
 
 ;; Server-Side rendering starting point
 (defn ^:export render-page [page-id]
-  (reagent/render-to-string [(get pages page-id)]))
+  (reagent/render-to-string [page (get pages page-id) (str "/" page-id)]))
 
 ;; Client side rendering starting point
 (defn ^:export main [page-id]
   (swap! app-state assoc :page page-id)
   (app-routes)
-  (reagent/render [current-page] (.getElementById js/document "app")))
+  (reagent/render [render-client-side] (.getElementById js/document "app")))
