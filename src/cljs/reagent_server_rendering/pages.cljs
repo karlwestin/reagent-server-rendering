@@ -2,8 +2,6 @@
   (:require [reagent.core :as reagent]
             [alandipert.storage-atom :refer [local-storage]]))
 
-(enable-console-print!)
-
 (defn home-page []
   [:div [:h2 "Welcome to reagent-server-rendering"]])
 
