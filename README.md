@@ -3,13 +3,33 @@ Reagent Server Side rendering:
 
 From here: https://github.com/reagent-project/reagent-cookbook
 
-### how to run:
+### Why is this nice?
 
+1. Run 'version 1' below, the figwheel + Hot Module Reloading concept
+2. run `curl http://localhost:3000/server-data` in a shell, receive a completely server rendered page
+3. Change components in src/cljs/reagent_server_rendering/page.cljs and watch the page update them without losing state.
+
+### How to Run:
+
+Version 1: Run with figwheel for REPL + Hot Module reloading. In 3 separate terminal windows
 ```bash
-$ lein cljsbuild auto
-# another browser
+# start the server side JS build
+$ lein cljsbuild auto server-side
+# serve the ring handler + static files
 $ lein ring server-headless
+# start repl, HMR + auto rebuild
+$ lein figwheel hmr
 ```
+
+Version 2: Run without watching and hot module reload, in production\* mode
+```bash
+# build cljs
+$ lein cljsbuild once prod server-side
+# start ring server, tell it to use prod js
+$ PROD=true lein ring server-headless
+```
+
+\* = this setup is in no way production ready
 
 ### Pages
 
@@ -38,6 +58,10 @@ Routes are only defined in CLJS, in reagent-server-rendering.core there's a `pag
 ```
 the string key becomes the URL, the value is a reagent component
 
-Ideas
+### Ideas:
 ----
-* How to add Figwheel + HMR?
+- Collect links that i've used
+- Discuss alternatives to the nashorn js engine pool
+- Run server-rendering in node?
+- Display this readme on the homepage
+- JS Unit tests

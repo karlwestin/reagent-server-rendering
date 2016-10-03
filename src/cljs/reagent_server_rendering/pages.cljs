@@ -93,8 +93,12 @@
 
 (defn server-data []
   [:div
-   [:h1 "this page is rendering data from the server"]
-   [:div "the count below is initially seeded from the server side"]
+   [:h1 "Rendering data from the server:"]
+   [:h2 "Initial value from server"]
+   [:div "The counter takes its start value from the server side.
+         The server-side data is passed in on the initial rendering at the bottom of the page.
+         You can see it in the page source like this:"
+      [:pre "reagent_server_rendering.core.main('server-data', {\"counter\":10});"]]
    [:div "Current count: " (@app-state "counter")]
    [:button {:on-click (fn [e] (swap! app-state update-in ["counter"] inc))} "increment"]])
 

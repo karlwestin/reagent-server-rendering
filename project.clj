@@ -15,7 +15,8 @@
                  [secretary "1.2.3"]
                  ;; local storage
                  [alandipert/storage-atom "1.2.4"]
-                 [org.clojure/data.json "0.2.6"]]
+                 [org.clojure/data.json "0.2.6"]
+                 [lein-figwheel "0.5.7"]]
 
   :source-paths ["src/clj"]
 
@@ -23,12 +24,28 @@
 
   :plugins [[lein-cljsbuild "1.0.6"]
             ;;plugin for starting the HTTP server
-            [lein-ring "0.9.6"]]
+            [lein-ring "0.9.6"]
+            [lein-figwheel "0.5.7"]]
 
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "test/js"]
+  :clean-targets ^{:protect false} ["resources/public/js" "target" "test/js"]
 
-  :cljsbuild {:builds [{:id "prod"
+  :cljsbuild {:builds [{:id "server-side"
+                        :source-paths ["src/cljs"]
+                        :compiler {:output-to "resources/public/js/server-side/app.js"
+                                   :output-dir "resources/public/js/server-side"
+                                   ;; all files inlined
+                                   :optimizations :whitespace}}
+                       {:id "prod"
                         :source-paths ["src/cljs"]
                         :compiler {:output-to "resources/public/js/compiled/app.js"
-                                   :optimizations :advanced
+                                   :output-dir "resources/public/js/compiled"
+                                   ;; all files inlined
+                                   :optimizations :advanced}}
+                       {:id "hmr"
+                        :source-paths ["src/cljs"]
+                        :figwheel { :on-jsload "reagent-server-rendering.core/figwheel-reload" }
+                        :compiler {:output-to "resources/public/js/figwheel/app.js"
+                                   :output-dir "resources/public/js/figwheel"
+                                   :asset-path "js/figwheel"
+                                   :optimizations :none
                                    :pretty-print true}}]})

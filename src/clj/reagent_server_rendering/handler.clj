@@ -15,7 +15,7 @@
   (doto (.getEngineByName (ScriptEngineManager.) "nashorn")
     ; React requires either "window" or "global" to be defined.
     (.eval "var global = this")
-    (.eval (-> "public/js/compiled/app.js"
+    (.eval (-> "public/js/server-side/app.js"
                io/resource
                io/reader))))
 
@@ -34,6 +34,26 @@
            "render_page" (object-array [page-id user-data]))
          (finally (flow/release js-engine-pool js-engine-key js-engine)))))
 
+(defn js-env [page-id user-data]
+  (if (System/getenv "PROD")
+    ;; PROD:
+    (list
+      (include-js "/public/js/compiled/app.js")
+      [:script {:type "text/javascript"}
+        (str "reagent_server_rendering.core.main('" page-id "', " user-data ");")])
+    ;; DEV: Figwheel JS
+    (list
+      (include-js "/public/js/figwheel/goog/base.js")
+      (include-js "/public/js/figwheel/app.js")
+      ;; This needs to be in its own script tag:
+      [:script {:type "text/javascript"}
+       "goog.require('reagent_server_rendering.core')"]
+      ;; Now we know we have the core module:
+      [:script {:type "text/javascript"}
+       (str "reagent_server_rendering.core.main('" page-id "', " user-data ");")])
+
+    ))
+
 (defn page [page-id]
   (let [user-data (json/write-str {"counter" 10})]
    (html
@@ -48,9 +68,7 @@
     [:body
      [:div#app
       (render-page page-id user-data)]
-     (include-js "/public/js/compiled/app.js")
-     [:script {:type "text/javascript"}
-      (str "reagent_server_rendering.core.main('" page-id "', " user-data ");")]]])
+      (js-env page-id user-data)]])
     )
   )
 

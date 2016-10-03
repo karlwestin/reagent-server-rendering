@@ -23,7 +23,10 @@
 
 (defn item [link title active]
   (let [nav! (@app-state :navigate)]
-    (if (= link active)
+    ;; comparison a little different server-side, client side
+    ;; need to figure out why!
+    (if (or (= link active)
+            (= link (str "/" active)))
       [:span title]
       [:a {:href link
            :onClick (fn [e]
@@ -117,3 +120,8 @@
     (reset! pages/app-state user-data)
     (app-routes)
     (reagent/render [render-client-side] (.getElementById js/document "app"))))
+
+
+(defn ^:export figwheel-reload []
+  (let [page (@app-state :page)]
+   (reagent/render [render-client-side] (.getElementById js/document "app"))))

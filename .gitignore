@@ -1,3 +1,4 @@
 .lein-repl-history
-resources/public/js/compiled/
+resources/public/js/
 target/
+figwheel_server.log
